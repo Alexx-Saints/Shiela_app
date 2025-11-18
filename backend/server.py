@@ -632,9 +632,10 @@ async def get_reviews(product_id: str):
     return reviews
 
 # ============== AI RECOMMENDATION ROUTES ==============
+# Note: AI recommendations disabled - emergentintegrations removed
 
-@api_router.post("/recommendations")
-async def get_recommendations(current_user: User = Depends(get_current_user)):
+# @api_router.post("/recommendations")
+# async def get_recommendations_disabled(current_user: User = Depends(get_current_user)):
     # Get user's order history
     orders = await db.orders.find({"user_id": current_user.id, "payment_status": "paid"}).to_list(100)
     
