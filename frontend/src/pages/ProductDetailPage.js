@@ -149,7 +149,7 @@ const ProductDetailPage = () => {
 
               <div className="mb-6">
                 <span className="text-5xl font-bold gradient-text" data-testid="product-price">
-                  ${product.price.toFixed(2)}
+                  ₱{product.price.toFixed(2)}
                 </span>
               </div>
 
