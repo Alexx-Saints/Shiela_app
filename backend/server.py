@@ -428,12 +428,13 @@ async def update_order_status(order_id: str, status: str, admin: User = Depends(
     return {"message": "Order status updated"}
 
 # ============== PAYMENT ROUTES ==============
+# Note: Stripe payment routes disabled - using mock checkout instead
 
-class CheckoutRequest(BaseModel):
-    order_id: str
-    origin_url: str
+# class CheckoutRequest(BaseModel):
+#     order_id: str
+#     origin_url: str
 
-@api_router.post("/checkout")
+# @api_router.post("/checkout")
 async def create_checkout(request: CheckoutRequest, http_request: Request, current_user: User = Depends(get_current_user)):
     # Get order
     order = await db.orders.find_one({"id": request.order_id, "user_id": current_user.id})
