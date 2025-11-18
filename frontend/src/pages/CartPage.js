@@ -151,7 +151,7 @@ const CartPage = () => {
                       <h3 className="font-semibold text-lg mb-1" data-testid={`item-name-${item.id}`}>{item.name}</h3>
                       <p className="text-slate-600 mb-2">{item.brand}</p>
                       <p className="text-2xl font-bold gradient-text" data-testid={`item-price-${item.id}`}>
-                        ${item.price.toFixed(2)}
+                        ₱{item.price.toFixed(2)}
                       </p>
                     </div>
                     <div className="flex items-center space-x-3">
