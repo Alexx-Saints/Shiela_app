@@ -9,6 +9,7 @@ import CartPage from '@/pages/CartPage';
 import OrderSuccessPage from '@/pages/OrderSuccessPage';
 import OrdersPage from '@/pages/OrdersPage';
 import AdminPage from '@/pages/AdminPage';
+import ReceiptPage from '@/pages/ReceiptPage';
 import { Toaster } from '@/components/ui/sonner';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
