@@ -4,7 +4,7 @@ import axios from 'axios';
 import { API } from '@/App';
 import Navbar from '@/components/Navbar';
 import { Button } from '@/components/ui/button';
-import { Package, ArrowLeft, Clock, CheckCircle, XCircle } from 'lucide-react';
+import { Package, ArrowLeft, Clock, CheckCircle, XCircle, FileText } from 'lucide-react';
 import { toast } from 'sonner';
 
 const OrdersPage = () => {
