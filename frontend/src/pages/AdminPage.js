@@ -298,7 +298,7 @@ const AdminPage = () => {
                         </div>
                         <div className="flex items-center space-x-4">
                           <span className="font-bold" data-testid={`order-total-${order.id}`}>
-                            ${order.total_amount.toFixed(2)}
+                            ₱{order.total_amount.toFixed(2)}
                           </span>
                           <Select
                             value={order.status}
