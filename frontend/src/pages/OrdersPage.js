@@ -167,7 +167,7 @@ const OrdersPage = () => {
                           <span className="text-slate-600 ml-2">× {item.quantity}</span>
                         </div>
                         <span className="font-semibold" data-testid={`item-price-${index}`}>
-                          ${(item.price * item.quantity).toFixed(2)}
+                          ₱{(item.price * item.quantity).toFixed(2)}
                         </span>
                       </div>
                     ))}
