@@ -484,54 +484,7 @@ async def get_reviews(product_id: str):
     return reviews
 
 # ============== AI RECOMMENDATION ROUTES ==============
-# Note: AI recommendations disabled - emergentintegrations removed
-
-# @api_router.post("/recommendations")
-# async def get_recommendations_disabled(current_user: User = Depends(get_current_user)):
-    # Get user's order history
-    orders = await db.orders.find({"user_id": current_user.id, "payment_status": "paid"}).to_list(100)
-    
-    # Get all products
-    all_products = await db.products.find({}, {"_id": 0}).to_list(1000)
-    
-    # Build context for AI
-    purchased_products = []
-    for order in orders:
-        for item in order.get('items', []):
-            purchased_products.append(item.get('product_name', ''))
-    
-    product_list = "\n".join([f"- {p['name']} ({p['category']}, ${p['price']})" for p in all_products[:50]])
-    
-    prompt = f"""User has purchased: {', '.join(purchased_products) if purchased_products else 'No previous purchases'}.
-
-Available products:
-{product_list}
-
-Based on the user's purchase history and available products, recommend 3-5 products they might be interested in. Provide only product names in a comma-separated list."""
-    
-    # Call AI
-    api_key = os.environ.get('EMERGENT_LLM_KEY')
-    chat = LlmChat(
-        api_key=api_key,
-        session_id=f"recommendations_{current_user.id}",
-        system_message="You are a helpful shopping assistant that recommends appliances based on user preferences."
-    ).with_model("openai", "gpt-4o-mini")
-    
-    user_message = UserMessage(text=prompt)
-    response = await chat.send_message(user_message)
-    
-    # Parse recommendations
-    recommended_names = [name.strip() for name in response.split(',')]
-    
-    # Find matching products
-    recommended_products = []
-    for name in recommended_names:
-        for product in all_products:
-            if name.lower() in product['name'].lower():
-                recommended_products.append(product)
-                break
-    
-    return {"recommendations": recommended_products[:5]}
+# Note: AI recommendations feature removed (emergentintegrations uninstalled)
 
 # ============== RECEIPT ROUTES ==============
 
