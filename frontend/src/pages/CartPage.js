@@ -68,14 +68,8 @@ const CartPage = () => {
       const orderResponse = await axios.post(`${API}/orders`);
       const order = orderResponse.data;
 
-      // Create checkout session
-      const checkoutResponse = await axios.post(`${API}/checkout`, {
-        order_id: order.id,
-        origin_url: window.location.origin
-      });
-
-      // Redirect to Stripe
-      window.location.href = checkoutResponse.data.url;
+      // Redirect to mock checkout page
+      navigate(`/checkout?order_id=${order.id}`);
     } catch (error) {
       console.error('Checkout failed', error);
       toast.error(error.response?.data?.detail || 'Checkout failed');
