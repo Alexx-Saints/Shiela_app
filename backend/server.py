@@ -428,14 +428,13 @@ async def update_order_status(order_id: str, status: str, admin: User = Depends(
     return {"message": "Order status updated"}
 
 # ============== PAYMENT ROUTES ==============
-# Note: Stripe payment routes disabled - using mock checkout instead
+# Note: Stripe payment routes removed - using mock checkout instead
+# All Stripe integration code has been disabled
 
-# class CheckoutRequest(BaseModel):
-#     order_id: str
-#     origin_url: str
-
-# @api_router.post("/checkout")
-async def create_checkout(request: CheckoutRequest, http_request: Request, current_user: User = Depends(get_current_user)):
+# Old Stripe endpoints (now disabled):
+# - POST /checkout (Stripe session creation)
+# - GET /checkout/status/{session_id} (Payment status check)
+# - POST /webhook/stripe (Stripe webhook handler)
     # Get order
     order = await db.orders.find_one({"id": request.order_id, "user_id": current_user.id})
     if not order:
