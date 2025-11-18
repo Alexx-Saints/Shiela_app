@@ -183,7 +183,7 @@ const ProductsPage = () => {
                       </div>
                       <div className="flex items-center justify-between">
                         <span className="text-2xl font-bold gradient-text" data-testid={`product-price-${product.id}`}>
-                          ${product.price.toFixed(2)}
+                          ₱{product.price.toFixed(2)}
                         </span>
                       </div>
                     </div>
