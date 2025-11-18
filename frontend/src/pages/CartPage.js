@@ -197,7 +197,7 @@ const CartPage = () => {
                   <div className="space-y-3 mb-6">
                     <div className="flex justify-between text-slate-600">
                       <span>Subtotal</span>
-                      <span data-testid="subtotal">${calculateTotal().toFixed(2)}</span>
+                      <span data-testid="subtotal">₱{calculateTotal().toFixed(2)}</span>
                     </div>
                     <div className="flex justify-between text-slate-600">
                       <span>Shipping</span>
@@ -205,7 +205,7 @@ const CartPage = () => {
                     </div>
                     <div className="border-t pt-3 flex justify-between text-xl font-bold">
                       <span>Total</span>
-                      <span className="gradient-text" data-testid="total">${calculateTotal().toFixed(2)}</span>
+                      <span className="gradient-text" data-testid="total">₱{calculateTotal().toFixed(2)}</span>
                     </div>
                   </div>
 
