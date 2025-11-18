@@ -11,17 +11,24 @@ const OrderSuccessPage = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const sessionId = searchParams.get('session_id');
+  const mockPayment = searchParams.get('mock');
+  const mockOrderId = searchParams.get('order_id');
   const [status, setStatus] = useState('checking');
-  const [orderId, setOrderId] = useState(null);
+  const [orderId, setOrderId] = useState(mockOrderId);
   const [attempts, setAttempts] = useState(0);
 
   useEffect(() => {
-    if (sessionId) {
+    if (mockPayment === 'true' && mockOrderId) {
+      // Mock payment - immediately show success
+      setStatus('success');
+      setOrderId(mockOrderId);
+      toast.success('Payment successful!');
+    } else if (sessionId) {
       pollPaymentStatus();
     } else {
       navigate('/cart');
     }
-  }, [sessionId]);
+  }, [sessionId, mockPayment, mockOrderId]);
 
   const pollPaymentStatus = async () => {
     const maxAttempts = 5;
