@@ -180,6 +180,18 @@ const OrdersPage = () => {
                       ₱{order.total_amount.toFixed(2)}
                     </span>
                   </div>
+                  
+                  {order.payment_status === 'paid' && (
+                    <div className="mt-4 pt-4 border-t">
+                      <Button
+                        onClick={() => navigate(`/receipt/${order.id}`)}
+                        className="w-full bg-gradient-to-r from-sky-500 to-cyan-500 hover:from-sky-600 hover:to-cyan-600"
+                        data-testid={`view-receipt-${order.id}`}
+                      >
+                        View Receipt
+                      </Button>
+                    </div>
+                  )}
                 </div>
               ))}
             </div>
