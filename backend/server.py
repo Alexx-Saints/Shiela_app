@@ -435,8 +435,8 @@ async def update_order_status(order_id: str, status: str, admin: User = Depends(
 # - POST /checkout (Stripe session creation)
 # - GET /checkout/status/{session_id} (Payment status check)
 # - POST /webhook/stripe (Stripe webhook handler)
-    # Get order
-    order = await db.orders.find_one({"id": request.order_id, "user_id": current_user.id})
+
+# ============== REVIEW ROUTES ==============
     if not order:
         raise HTTPException(status_code=404, detail="Order not found")
     
