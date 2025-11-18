@@ -80,6 +80,16 @@ const OrderSuccessPage = () => {
                   Thank you for your purchase. Your order has been confirmed and will be processed shortly.
                 </p>
                 <div className="space-y-4">
+                  {orderId && (
+                    <Button
+                      onClick={() => navigate(`/receipt/${orderId}`)}
+                      className="w-full bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600"
+                      data-testid="view-receipt-button"
+                    >
+                      <FileText className="w-5 h-5 mr-2" />
+                      View Receipt
+                    </Button>
+                  )}
                   <Button
                     onClick={() => navigate(`/orders`)}
                     className="w-full bg-gradient-to-r from-sky-500 to-cyan-500 hover:from-sky-600 hover:to-cyan-600"
