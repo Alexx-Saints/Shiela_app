@@ -177,7 +177,7 @@ const OrdersPage = () => {
                   <div className="flex items-center justify-between pt-4 border-t">
                     <span className="text-lg font-semibold">Total</span>
                     <span className="text-2xl font-bold gradient-text" data-testid={`order-total-${order.id}`}>
-                      ${order.total_amount.toFixed(2)}
+                      ₱{order.total_amount.toFixed(2)}
                     </span>
                   </div>
                 </div>
