@@ -702,191 +702,111 @@ async def download_receipt_pdf(order_id: str, current_user: User = Depends(get_c
     # Get user details
     user = await db.users.find_one({"id": current_user.id}, {"_id": 0})
     
-    # Generate HTML for receipt
-    html_content = f"""
-    <!DOCTYPE html>
-    <html>
-    <head>
-        <meta charset="utf-8">
-        <style>
-            body {{
-                font-family: Arial, sans-serif;
-                margin: 40px;
-                color: #333;
-            }}
-            .header {{
-                text-align: center;
-                margin-bottom: 40px;
-                border-bottom: 3px solid #0ea5e9;
-                padding-bottom: 20px;
-            }}
-            .company-name {{
-                font-size: 32px;
-                font-weight: bold;
-                color: #0ea5e9;
-                margin-bottom: 5px;
-            }}
-            .receipt-title {{
-                font-size: 24px;
-                color: #64748b;
-                margin-top: 10px;
-            }}
-            .info-section {{
-                margin: 30px 0;
-            }}
-            .info-row {{
-                display: flex;
-                justify-content: space-between;
-                margin: 10px 0;
-            }}
-            .label {{
-                font-weight: bold;
-                color: #64748b;
-            }}
-            table {{
-                width: 100%;
-                border-collapse: collapse;
-                margin: 30px 0;
-            }}
-            th {{
-                background-color: #0ea5e9;
-                color: white;
-                padding: 12px;
-                text-align: left;
-            }}
-            td {{
-                padding: 12px;
-                border-bottom: 1px solid #e2e8f0;
-            }}
-            .total-section {{
-                margin-top: 30px;
-                text-align: right;
-            }}
-            .total-row {{
-                display: flex;
-                justify-content: flex-end;
-                margin: 10px 0;
-                font-size: 14px;
-            }}
-            .total-label {{
-                margin-right: 30px;
-                color: #64748b;
-            }}
-            .grand-total {{
-                font-size: 24px;
-                font-weight: bold;
-                color: #0ea5e9;
-                margin-top: 15px;
-                padding-top: 15px;
-                border-top: 2px solid #0ea5e9;
-            }}
-            .footer {{
-                margin-top: 50px;
-                text-align: center;
-                color: #94a3b8;
-                font-size: 12px;
-                border-top: 1px solid #e2e8f0;
-                padding-top: 20px;
-            }}
-            .status-badge {{
-                display: inline-block;
-                padding: 5px 15px;
-                border-radius: 20px;
-                font-size: 12px;
-                font-weight: bold;
-            }}
-            .status-paid {{
-                background-color: #dcfce7;
-                color: #166534;
-            }}
-            .status-pending {{
-                background-color: #fef3c7;
-                color: #92400e;
-            }}
-        </style>
-    </head>
-    <body>
-        <div class="header">
-            <div class="company-name">ApplianceHub</div>
-            <div class="receipt-title">ORDER RECEIPT</div>
-        </div>
-        
-        <div class="info-section">
-            <div class="info-row">
-                <span class="label">Order ID:</span>
-                <span>{order['id'][:8].upper()}</span>
-            </div>
-            <div class="info-row">
-                <span class="label">Date:</span>
-                <span>{datetime.fromisoformat(order['created_at']).strftime('%B %d, %Y %I:%M %p')}</span>
-            </div>
-            <div class="info-row">
-                <span class="label">Customer:</span>
-                <span>{user['name']}</span>
-            </div>
-            <div class="info-row">
-                <span class="label">Email:</span>
-                <span>{user['email']}</span>
-            </div>
-            <div class="info-row">
-                <span class="label">Payment Status:</span>
-                <span class="status-badge status-{order['payment_status']}">{order['payment_status'].upper()}</span>
-            </div>
-        </div>
-        
-        <table>
-            <thead>
-                <tr>
-                    <th>Product</th>
-                    <th>Quantity</th>
-                    <th>Price</th>
-                    <th>Total</th>
-                </tr>
-            </thead>
-            <tbody>
-    """
+    # Generate PDF using reportlab
+    pdf_buffer = BytesIO()
+    doc = SimpleDocTemplate(pdf_buffer, pagesize=letter)
+    story = []
+    styles = getSampleStyleSheet()
     
+    # Custom styles
+    title_style = ParagraphStyle(
+        'CustomTitle',
+        parent=styles['Heading1'],
+        fontSize=24,
+        textColor=colors.HexColor('#0ea5e9'),
+        alignment=TA_CENTER,
+        spaceAfter=30
+    )
+    
+    # Company name and title
+    story.append(Paragraph("ApplianceHub", title_style))
+    story.append(Paragraph("ORDER RECEIPT", styles['Heading2']))
+    story.append(Spacer(1, 0.3*inch))
+    
+    # Order info
+    order_date = datetime.fromisoformat(order['created_at']).strftime('%B %d, %Y %I:%M %p')
+    info_data = [
+        ['Order ID:', order['id'][:8].upper()],
+        ['Date:', order_date],
+        ['Customer:', user['name']],
+        ['Email:', user['email']],
+        ['Payment Status:', order['payment_status'].upper()]
+    ]
+    
+    info_table = Table(info_data, colWidths=[2*inch, 4*inch])
+    info_table.setStyle(TableStyle([
+        ('FONTNAME', (0, 0), (0, -1), 'Helvetica-Bold'),
+        ('FONTNAME', (1, 0), (1, -1), 'Helvetica'),
+        ('FONTSIZE', (0, 0), (-1, -1), 10),
+        ('TEXTCOLOR', (0, 0), (0, -1), colors.HexColor('#64748b')),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 8),
+    ]))
+    story.append(info_table)
+    story.append(Spacer(1, 0.5*inch))
+    
+    # Items table
+    items_data = [['Product', 'Qty', 'Price', 'Total']]
     for item in order['items']:
         item_total = item['price'] * item['quantity']
-        html_content += f"""
-                <tr>
-                    <td>{item['product_name']}</td>
-                    <td>{item['quantity']}</td>
-                    <td>₱{item['price']:.2f}</td>
-                    <td>₱{item_total:.2f}</td>
-                </tr>
-        """
+        items_data.append([
+            item['product_name'],
+            str(item['quantity']),
+            f"₱{item['price']:.2f}",
+            f"₱{item_total:.2f}"
+        ])
     
-    html_content += f"""
-            </tbody>
-        </table>
-        
-        <div class="total-section">
-            <div class="total-row">
-                <span class="total-label">Subtotal:</span>
-                <span>₱{order['total_amount']:.2f}</span>
-            </div>
-            <div class="total-row">
-                <span class="total-label">Shipping:</span>
-                <span>FREE</span>
-            </div>
-            <div class="total-row grand-total">
-                <span class="total-label">TOTAL:</span>
-                <span>₱{order['total_amount']:.2f}</span>
-            </div>
-        </div>
-        
-        <div class="footer">
-            <p>Thank you for shopping with ApplianceHub!</p>
-            <p>For questions or support, please contact us at support@appliancehub.com</p>
-        </div>
-    </body>
-    </html>
-    """
+    items_table = Table(items_data, colWidths=[3*inch, 0.8*inch, 1.2*inch, 1.2*inch])
+    items_table.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#0ea5e9')),
+        ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+        ('ALIGN', (1, 0), (-1, -1), 'CENTER'),
+        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+        ('FONTSIZE', (0, 0), (-1, 0), 11),
+        ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
+        ('BACKGROUND', (0, 1), (-1, -1), colors.white),
+        ('GRID', (0, 0), (-1, -1), 1, colors.HexColor('#e2e8f0')),
+        ('FONTSIZE', (0, 1), (-1, -1), 10),
+        ('TOPPADDING', (0, 1), (-1, -1), 8),
+        ('BOTTOMPADDING', (0, 1), (-1, -1), 8),
+    ]))
+    story.append(items_table)
+    story.append(Spacer(1, 0.3*inch))
     
-    # Generate PDF
-    pdf_buffer = BytesIO()
-    HTML(string=html_content).write_pdf(pdf_buffer)
+    # Totals
+    totals_data = [
+        ['Subtotal:', f"₱{order['total_amount']:.2f}"],
+        ['Shipping:', 'FREE'],
+        ['', ''],
+        ['TOTAL:', f"₱{order['total_amount']:.2f}"]
+    ]
+    
+    totals_table = Table(totals_data, colWidths=[5*inch, 1.2*inch])
+    totals_table.setStyle(TableStyle([
+        ('ALIGN', (0, 0), (-1, -1), 'RIGHT'),
+        ('FONTNAME', (0, 0), (0, 1), 'Helvetica'),
+        ('FONTNAME', (0, 3), (0, 3), 'Helvetica-Bold'),
+        ('FONTSIZE', (0, 0), (-1, 2), 10),
+        ('FONTSIZE', (0, 3), (-1, 3), 14),
+        ('TEXTCOLOR', (0, 3), (-1, 3), colors.HexColor('#0ea5e9')),
+        ('LINEABOVE', (0, 3), (-1, 3), 2, colors.HexColor('#0ea5e9')),
+        ('TOPPADDING', (0, 3), (-1, 3), 10),
+    ]))
+    story.append(totals_table)
+    story.append(Spacer(1, 0.5*inch))
+    
+    # Footer
+    footer_style = ParagraphStyle(
+        'Footer',
+        parent=styles['Normal'],
+        fontSize=9,
+        textColor=colors.HexColor('#94a3b8'),
+        alignment=TA_CENTER
+    )
+    story.append(Paragraph("Thank you for shopping with ApplianceHub!", footer_style))
+    story.append(Paragraph("For questions or support, please contact us at support@appliancehub.com", footer_style))
+    
+    # Build PDF
+    doc.build(story)
     pdf_buffer.seek(0)
     
     return StreamingResponse(
