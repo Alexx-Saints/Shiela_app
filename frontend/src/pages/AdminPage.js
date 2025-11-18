@@ -159,7 +159,7 @@ const AdminPage = () => {
                 <div>
                   <p className="text-slate-600 mb-1">Total Revenue</p>
                   <p className="text-3xl font-bold gradient-text" data-testid="total-revenue">
-                    ${stats.totalRevenue.toFixed(2)}
+                    ₱{stats.totalRevenue.toFixed(2)}
                   </p>
                 </div>
                 <DollarSign className="w-12 h-12 text-sky-500" />
