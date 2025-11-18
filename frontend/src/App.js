@@ -77,6 +77,7 @@ function App() {
             <Route path="/cart" element={user ? <CartPage /> : <Navigate to="/" />} />
             <Route path="/order-success" element={user ? <OrderSuccessPage /> : <Navigate to="/" />} />
             <Route path="/orders" element={user ? <OrdersPage /> : <Navigate to="/" />} />
+            <Route path="/receipt/:orderId" element={user ? <ReceiptPage /> : <Navigate to="/" />} />
             <Route path="/admin" element={user?.is_admin ? <AdminPage /> : <Navigate to="/" />} />
           </Routes>
         </BrowserRouter>
