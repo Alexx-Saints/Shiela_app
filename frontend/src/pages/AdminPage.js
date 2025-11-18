@@ -368,7 +368,7 @@ const AdminPage = () => {
               </div>
               <div className="grid grid-cols-3 gap-4">
                 <div>
-                  <Label>Price ($)</Label>
+                  <Label>Price (₱)</Label>
                   <Input
                     type="number"
                     step="0.01"
