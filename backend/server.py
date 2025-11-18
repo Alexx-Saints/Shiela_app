@@ -832,6 +832,39 @@ async def email_receipt(order_id: str, current_user: User = Depends(get_current_
         "order_id": order_id
     }
 
+# ============== MOCK PAYMENT ROUTE ==============
+
+@api_router.patch("/orders/{order_id}/mock-payment")
+async def mock_payment(order_id: str, current_user: User = Depends(get_current_user)):
+    # Get order
+    order = await db.orders.find_one({"id": order_id, "user_id": current_user.id})
+    if not order:
+        raise HTTPException(status_code=404, detail="Order not found")
+    
+    if order['payment_status'] == 'paid':
+        return {"message": "Order already paid"}
+    
+    # Update order status
+    await db.orders.update_one(
+        {"id": order_id},
+        {"$set": {"payment_status": "paid", "status": "processing"}}
+    )
+    
+    # Update product stock
+    for item in order['items']:
+        await db.products.update_one(
+            {"id": item['product_id']},
+            {"$inc": {"stock": -item['quantity']}}
+        )
+    
+    # Clear user's cart
+    await db.carts.update_one(
+        {"user_id": current_user.id},
+        {"$set": {"items": [], "updated_at": datetime.now(timezone.utc).isoformat()}}
+    )
+    
+    return {"message": "Payment successful", "order_id": order_id}
+
 # ============== GENERAL ROUTES ==============
 
 @api_router.get("/")
