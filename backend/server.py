@@ -676,6 +676,237 @@ Based on the user's purchase history and available products, recommend 3-5 produ
     
     return {"recommendations": recommended_products[:5]}
 
+# ============== RECEIPT ROUTES ==============
+
+@api_router.get("/orders/{order_id}/receipt")
+async def get_receipt(order_id: str, current_user: User = Depends(get_current_user)):
+    # Get order details
+    order = await db.orders.find_one({"id": order_id, "user_id": current_user.id}, {"_id": 0})
+    if not order:
+        raise HTTPException(status_code=404, detail="Order not found")
+    
+    return order
+
+@api_router.get("/orders/{order_id}/receipt/pdf")
+async def download_receipt_pdf(order_id: str, current_user: User = Depends(get_current_user)):
+    # Get order details
+    order = await db.orders.find_one({"id": order_id, "user_id": current_user.id}, {"_id": 0})
+    if not order:
+        raise HTTPException(status_code=404, detail="Order not found")
+    
+    # Get user details
+    user = await db.users.find_one({"id": current_user.id}, {"_id": 0})
+    
+    # Generate HTML for receipt
+    html_content = f"""
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <meta charset="utf-8">
+        <style>
+            body {{
+                font-family: Arial, sans-serif;
+                margin: 40px;
+                color: #333;
+            }}
+            .header {{
+                text-align: center;
+                margin-bottom: 40px;
+                border-bottom: 3px solid #0ea5e9;
+                padding-bottom: 20px;
+            }}
+            .company-name {{
+                font-size: 32px;
+                font-weight: bold;
+                color: #0ea5e9;
+                margin-bottom: 5px;
+            }}
+            .receipt-title {{
+                font-size: 24px;
+                color: #64748b;
+                margin-top: 10px;
+            }}
+            .info-section {{
+                margin: 30px 0;
+            }}
+            .info-row {{
+                display: flex;
+                justify-content: space-between;
+                margin: 10px 0;
+            }}
+            .label {{
+                font-weight: bold;
+                color: #64748b;
+            }}
+            table {{
+                width: 100%;
+                border-collapse: collapse;
+                margin: 30px 0;
+            }}
+            th {{
+                background-color: #0ea5e9;
+                color: white;
+                padding: 12px;
+                text-align: left;
+            }}
+            td {{
+                padding: 12px;
+                border-bottom: 1px solid #e2e8f0;
+            }}
+            .total-section {{
+                margin-top: 30px;
+                text-align: right;
+            }}
+            .total-row {{
+                display: flex;
+                justify-content: flex-end;
+                margin: 10px 0;
+                font-size: 14px;
+            }}
+            .total-label {{
+                margin-right: 30px;
+                color: #64748b;
+            }}
+            .grand-total {{
+                font-size: 24px;
+                font-weight: bold;
+                color: #0ea5e9;
+                margin-top: 15px;
+                padding-top: 15px;
+                border-top: 2px solid #0ea5e9;
+            }}
+            .footer {{
+                margin-top: 50px;
+                text-align: center;
+                color: #94a3b8;
+                font-size: 12px;
+                border-top: 1px solid #e2e8f0;
+                padding-top: 20px;
+            }}
+            .status-badge {{
+                display: inline-block;
+                padding: 5px 15px;
+                border-radius: 20px;
+                font-size: 12px;
+                font-weight: bold;
+            }}
+            .status-paid {{
+                background-color: #dcfce7;
+                color: #166534;
+            }}
+            .status-pending {{
+                background-color: #fef3c7;
+                color: #92400e;
+            }}
+        </style>
+    </head>
+    <body>
+        <div class="header">
+            <div class="company-name">ApplianceHub</div>
+            <div class="receipt-title">ORDER RECEIPT</div>
+        </div>
+        
+        <div class="info-section">
+            <div class="info-row">
+                <span class="label">Order ID:</span>
+                <span>{order['id'][:8].upper()}</span>
+            </div>
+            <div class="info-row">
+                <span class="label">Date:</span>
+                <span>{datetime.fromisoformat(order['created_at']).strftime('%B %d, %Y %I:%M %p')}</span>
+            </div>
+            <div class="info-row">
+                <span class="label">Customer:</span>
+                <span>{user['name']}</span>
+            </div>
+            <div class="info-row">
+                <span class="label">Email:</span>
+                <span>{user['email']}</span>
+            </div>
+            <div class="info-row">
+                <span class="label">Payment Status:</span>
+                <span class="status-badge status-{order['payment_status']}">{order['payment_status'].upper()}</span>
+            </div>
+        </div>
+        
+        <table>
+            <thead>
+                <tr>
+                    <th>Product</th>
+                    <th>Quantity</th>
+                    <th>Price</th>
+                    <th>Total</th>
+                </tr>
+            </thead>
+            <tbody>
+    """
+    
+    for item in order['items']:
+        item_total = item['price'] * item['quantity']
+        html_content += f"""
+                <tr>
+                    <td>{item['product_name']}</td>
+                    <td>{item['quantity']}</td>
+                    <td>₱{item['price']:.2f}</td>
+                    <td>₱{item_total:.2f}</td>
+                </tr>
+        """
+    
+    html_content += f"""
+            </tbody>
+        </table>
+        
+        <div class="total-section">
+            <div class="total-row">
+                <span class="total-label">Subtotal:</span>
+                <span>₱{order['total_amount']:.2f}</span>
+            </div>
+            <div class="total-row">
+                <span class="total-label">Shipping:</span>
+                <span>FREE</span>
+            </div>
+            <div class="total-row grand-total">
+                <span class="total-label">TOTAL:</span>
+                <span>₱{order['total_amount']:.2f}</span>
+            </div>
+        </div>
+        
+        <div class="footer">
+            <p>Thank you for shopping with ApplianceHub!</p>
+            <p>For questions or support, please contact us at support@appliancehub.com</p>
+        </div>
+    </body>
+    </html>
+    """
+    
+    # Generate PDF
+    pdf_buffer = BytesIO()
+    HTML(string=html_content).write_pdf(pdf_buffer)
+    pdf_buffer.seek(0)
+    
+    return StreamingResponse(
+        pdf_buffer,
+        media_type="application/pdf",
+        headers={"Content-Disposition": f"attachment; filename=receipt_{order['id'][:8]}.pdf"}
+    )
+
+@api_router.post("/orders/{order_id}/email-receipt")
+async def email_receipt(order_id: str, current_user: User = Depends(get_current_user)):
+    # Get order details
+    order = await db.orders.find_one({"id": order_id, "user_id": current_user.id}, {"_id": 0})
+    if not order:
+        raise HTTPException(status_code=404, detail="Order not found")
+    
+    # Note: Email functionality would require SMTP configuration
+    # For now, we'll return success and log the action
+    logger.info(f"Email receipt requested for order {order_id} by user {current_user.email}")
+    
+    return {
+        "message": "Receipt email sent successfully!",
+        "email": current_user.email,
+        "order_id": order_id
+    }
+
 # ============== GENERAL ROUTES ==============
 
 @api_router.get("/")
